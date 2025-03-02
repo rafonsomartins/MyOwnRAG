@@ -1,0 +1,6 @@
+This is the Profile section on my cv:
+
+% Profile
+\section*{Profile}
+Results-driven professional with a passion for statistics, technology, and problem-solving. Originally drawn to business strategy, I developed a strong enthusiasm for coding and data analytics in my final year of college. My mid-term goal is to grow into a Tech Lead role, integrating technology with strategic decision-making. In the short term, I seek opportunities to work on diverse technical challenges and expand my expertise.
+

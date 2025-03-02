@@ -1,0 +1,19 @@
+This is the projects section on my cv:
+
+% Projects
+\section*{Projects}
+\textbf{Automated Package Delivery with Drones}\\
+\textit{Hackathon Project Lead} \hfill \textit{October 2024 - December 2024}
+\begin{itemize}
+    \item Led a team of four, including myself, in a hackathon to develop an autonomous drone-based package delivery system.
+    \item Designed the system architecture, user roles, and operational workflows.
+    \item Developed backend systems for drone communication, integrating MAVLink for real-time control.
+    \item Implemented safety features such as autonomous landing at the least-inclined point for improved security.
+    \item Awarded second place for innovative use of technology and efficient system design.
+    \item Team composition:
+    \begin{itemize}
+        \item \textbf{Frontend Developer:} Built an Android app enabling interactions for different user roles (Admin, User, Engineer, Guest).
+        \item \textbf{Database Engineer:} Managed a PostgreSQL database for storing telemetry data and logs.
+        \item \textbf{Physics Engineer:} Contributed to drone stability and navigation enhancements.
+    \end{itemize}
+\end{itemize}

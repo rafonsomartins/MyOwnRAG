@@ -1,0 +1,25 @@
+This is the experience section on my cv:
+
+% Experience
+\section*{Experience}
+\textbf{RAR A\c{c}úcar}\\
+\textit{Lead Data Engineer} \hfill \textit{October 2024 -- Present}
+\begin{itemize}
+    \item Promoted after identifying and resolving critical data inconsistencies across multiple sources.
+    \item Implementing a centralized \textbf{Data Warehouse} to standardize company-wide data discussions.
+    \item Optimizing \textbf{ETL processes} and \textbf{Data Pipelines} for improved data accessibility and integration, leveraging SQL, Python, Bash, and Linux.
+    \item Leading the development of a \textbf{Digital Twin} for the company's chemical factory using Object-Oriented Programming (OOP) in Python.
+    \item Developing and maintaining dashboards in Power BI and Grafana for enhanced data visualization and reporting.
+    \item Collaborating with engineers to integrate IoT sensors and automate industrial processes.
+    \item Gaining hands-on experience with SAP and Sysmac Studio.
+\end{itemize}
+
+\textit{Data Analyst} \hfill \textit{January 2024 -- October 2024}
+\begin{itemize}
+    \item Conducted predictive modeling to optimize BOM (Bill of Materials) values, improving stock decrease accuracy and preventing significant inventory discrepancies, which directly impacted real-time inventory management.
+    \item Developed and implemented models that predicted BOM adjustments based on historical production data, resulting in a 15\% reduction in stock variances.
+    \item Conducted data analysis to support strategic decision-making using Power BI, Grafana, Excel, Pandas, and Gretl.
+    \item Automated routine tasks through Python scripting, increasing operational efficiency.
+    \item Identified millions of euros worth trends in consumption, sales, and production, leading to significant cost savings and waste reduction.
+    \item Developed data-driven products not only for reporting but also to empower responsible personnel in monitoring operations efficiently.
+\end{itemize}

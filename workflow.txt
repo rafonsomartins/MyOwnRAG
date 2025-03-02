@@ -1,0 +1,21 @@
+Frontend (React) on Vercel:
+
+Your React app is hosted on Vercel.
+It sends requests to Vercel’s API routes (which are serverless functions).
+Vercel’s API Routes (Serverless Functions):
+
+You can use Vercel’s serverless functions (written in JavaScript or Python) to handle API routes directly in Vercel.
+API routes in Vercel can communicate with your Flask backend (which you would host elsewhere, like Heroku, Railway, etc.) via HTTP.
+Flask Backend (Hosted elsewhere):
+
+Your Flask app will still be hosted on a platform like Heroku, Railway, or Render (since Vercel isn't ideal for Flask).
+The Flask backend handles communication with the Gemini API and MongoDB.
+Vercel → Flask Backend → Gemini API → MongoDB:
+
+Vercel's API route acts as a middle layer between your React frontend and the Flask backend.
+Flask interacts with the Gemini API and MongoDB (for RAG).
+The response from the Gemini API is sent back through the Flask backend, and the Flask backend then sends the data to Vercel’s API route.
+Frontend Displays Response:
+
+Vercel’s API route then sends the response back to the React frontend (hosted on Vercel).
+The React app displays the result to the user.

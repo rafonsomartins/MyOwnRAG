@@ -1,0 +1,28 @@
+This is the education and the certifications section of my cv:
+
+% Education
+\section*{Education}
+\textbf{École 42 - Porto's Campus} \hfill \textit{April 2024 -- In Progress}\\
+\textit{Software Engineering Program}
+\begin{itemize}
+    \item Building a strong foundation in C, C++, and Linux.
+    \item Gaining proficiency in core Computer Science concepts.
+    \item Enhancing leadership and proactiveness through deep involvement in the Students' Association and participation in multiple Hackathons.
+\end{itemize}
+
+\textbf{Universidade de Coimbra} \hfill \textit{September 2021 -- June 2023}\\
+\textit{Bachelor's in Economics}
+\begin{itemize}
+    \item Developed a strong foundation in Statistics, particularly predictive models like OLS regressions.
+    \item Gained a business-oriented perspective, enhancing strategic thinking.
+    \item Improved communication skills through active participation in the Students' Association.
+    \item Strengthened discipline and analytical thinking by competing in chess at the city's club.
+\end{itemize}
+
+% Certifications
+\section*{Certifications}
+\textbf{CS50ai} \hfill \textit{December 2024 -- In Progress}\\
+\textit{Harvard's Introduction to Artificial Intelligence online course}
+
+\textbf{CS50x} \hfill \textit{December 2022 -- March 2023}\\
+\textit{Harvard's Introduction to Computer Science online course}

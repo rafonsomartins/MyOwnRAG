@@ -1,0 +1,30 @@
+These are some more skills that I have and the professional and academic experiences that helped me develop them:
+
+Data Structures:
+
+    2 experiences at RAR Açúcar
+    42 Porto
+    CS50x: Introduction to Computer Science
+
+C++:
+
+    42 Porto
+
+C (Programming Language):
+
+    42 Porto
+    CS50x: Introduction to Computer Science
+
+Web Development:
+
+    CS50x: Introduction to Computer Science
+    Hackathon - Drone Innovation
+
+Bash:
+
+    Lead Data Engineer at RAR Açúcar
+    42 Porto
+
+Peer-to-Peer (P2P):
+
+    42 Porto

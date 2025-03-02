@@ -1,0 +1,12 @@
+This is a motivational letter to apply to the machine learning master's in FEUP -Faculdade de Egenharia do Porto.
+
+From a young age, I was drawn to logic and discovery, fascinated by mathematical concepts and problem-solving. However, my academic journey initially took a different direction - I pursued Economics, believing it would offer a balance between analytical rigor and flexibility. It was only in my final year, when I discovered programming through HarvardX’s Introduction to Computer Science, that I realized my true passion lay in computational thinking and AI.
+
+Determined to bridge my background with this newfound interest, I immersed myself in coding, data analysis, and AI-related coursework. I joined 42 Porto’s Software Engineering program and completed CS50ai, solidifying my focus on Machine Learning and deep learning research. These experiences have confirmed my goal: to contribute to advancements in AI, particularly in deep learning applications.
+
+The Master's in Artificial Intelligence at FEUP stands out as the ideal next step in my journey. Its strong foundation in AI, combined with its research-oriented structure, will provide the depth of knowledge I need to transition fully into the field. The program’s emphasis on both theoretical and applied AI aligns perfectly with my aspirations, equipping me with the expertise to pursue a career in research or industry-driven innovation.
+
+By joining FEUP, I seek to refine my skills, expand my knowledge, and contribute meaningfully to the AI community. I am eager to embrace this challenge and take the next step toward a career in Artificial Intelligence.
+
+Thank you for your time and consideration.
+

@@ -1,0 +1,9 @@
+This is the first part of my longer motivational letter:
+
+
+\section*{Hello, world! This is my motivational letter. I hope I wasn't too extensive or too casual.}
+
+When I was younger, I knew very few things about myself: I always loved math and numbers. I wasn’t a fan of simply using tools, I enjoyed the process of learning and discovery. For example, I never really liked solving equations and wasn’t particularly good at them, but I loved logical puzzles and uncovering new concepts. I still remember the excitement of learning about imaginary numbers or the time I couldn't help but explain to everyone why time doesn’t actually pass equally for everyone.
+
+Despite my natural inclination toward exact sciences, I assumed engineering would be too rigid for me, leaving no room for conceptual learning. So, in high school, I chose to study Socioeconomics Sciences decision I now see as a mistake. I later pursued Economics as the bachelor's with most math from the ones I could choose from coming from that course. 
+

@@ -1,0 +1,13 @@
+I’m currently ranked 04 at 42Porto, and it's been one of the best experiences of my life. I'm working on complex projects and learning a lot.
+
+Minishell was challenging, requiring me to build a minimalistic shell in C, handling processes, signals, and system calls. Completing it gave me a deep understanding of how shells interact with the OS.
+
+fract-ol introduced me to graphical programming by rendering fractals like Mandelbrot and Julia sets. It was a great mix of math and graphics, sparking my interest in graphical programming.
+
+Building on that, I’m now working on MiniRT, a mini raytracer in C, where I’m learning more about 3D rendering, lighting, and object intersection algorithms. I love the challenge and want to keep working on graphical programming in the future.
+
+All of these projects were done with my own libft, the first project at 42, which forces me to understand what’s happening "under the hood" and build everything from scratch.
+
+Next, I’m excited to dive into Webserv, where I’ll code the entire HTTP protocol in C++, which will be a big step forward in my development.
+
+I’m also applying for the SEA:ME program, focused on Software Engineering, Embedded Systems, and Mobility Ecosystems with C++.

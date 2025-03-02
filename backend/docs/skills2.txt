@@ -1,0 +1,38 @@
+These are some more skills that I have and the professional and academic experiences that helped me develop them:
+
+Pandas (Software):
+
+    2 experiences at RAR Açúcar
+    CS50x: Introduction to Computer Science
+    CS50ai: Introduction to Artificial Intelligence
+
+Databases:
+
+    2 experiences at RAR Açúcar
+    Hackathon - Drone Innovation
+
+Data Warehouse:
+
+    2 experiences at RAR Açúcar
+    Object-Oriented Programming (OOP)
+    Lead Data Engineer at RAR Açúcar
+    42 Porto
+    CS50ai: Introduction to Artificial Intelligence
+
+Continuous Learning:
+
+    2 educational experiences at 42 Porto and another institution
+    CS50x: Introduction to Computer Science
+    CS50ai: Introduction to Artificial Intelligence
+
+Python:
+
+    2 experiences at RAR Açúcar
+    CS50x: Introduction to Computer Science
+    CS50ai: Introduction to Artificial Intelligence
+
+SQL:
+
+    2 experiences at RAR Açúcar
+    CS50x: Introduction to Computer Science
+    Hackathon - Drone Innovation

@@ -1,0 +1,31 @@
+These are some more skills that I have and the professional and academic experiences that helped me develop them:
+
+DevOps:
+
+    Lead Data Engineer at RAR Açúcar
+
+Linux:
+
+    Lead Data Engineer at RAR Açúcar
+
+Microsoft Windows:
+
+    Lead Data Engineer at RAR Açúcar
+
+Process Automation:
+
+    Hackathon - Drone Innovation
+
+Machine Learning:
+
+    CS50ai: Introduction to Artificial Intelligence
+
+Neural Networks:
+
+    CS50ai: Introduction to Artificial Intelligence
+
+Algorithms:
+
+    2 experiences at RAR Açúcar
+    42 Porto
+    CS50x: Introduction to Computer Science

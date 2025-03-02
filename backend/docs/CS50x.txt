@@ -1,0 +1,8 @@
+I am very happy to have taken CS50x course in my last year of college. It got me into Computer Science and, in my point of view, is a perfect course:
+
+It teached me C and foundamentals of how computers work.
+It teached me the fundamentals of computer vision.
+Teached me the fundamentals of algorithms.
+And then it even got me started with python, web and some SQL.
+
+It is the perfect first computer science course that gave me a first touch with everything so I can now choose what I want to follow.
