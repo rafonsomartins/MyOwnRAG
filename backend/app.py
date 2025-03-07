@@ -1,35 +1,36 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from sentence_transformers import SentenceTransformer, util
 from pydantic import BaseModel
 import google.generativeai as genai
 import os
+import redis  # Regis added here
+from uuid import uuid4
+from typing import Optional
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 
-genai.configure(api_key="#####")
+origins = [
+	"http://localhost:3000",  # Allow frontend running on localhost:3000
+	"https://your-frontend.com",  # Allow production frontend
+]
+
+# Add CORS middleware
+app.add_middleware(
+	CORSMiddleware,
+	allow_origins=origins,  # Domains that can access the API
+	allow_credentials=True,  # Allow cookies and authentication headers
+	allow_methods=["*"],  # Allow all HTTP methods (GET, POST, PUT, DELETE, etc.)
+	allow_headers=["*"],  # Allow all headers
+)
+
+# Regis: Redis session storage (Replace localhost with your Redis server if needed)
+regis = redis.Redis(host="localhost", port=6379, decode_responses=True)
+
+genai.configure(api_key="")
 model = SentenceTransformer("all-MiniLM-L6-v2")
 
 DOCS_FOLDER = "docs"
-
-def load_documents():
-    documents = []
-    for filename in os.listdir(DOCS_FOLDER):
-        file_path = os.path.join(DOCS_FOLDER, filename)
-        if os.path.isfile(file_path) and filename.endswith(".txt"):  # Adjust for other formats
-            with open(file_path, "r", encoding="utf-8") as file:
-                content = file.read().strip()
-                documents.append({"id": filename, "text": content})
-    return documents
-
-documents = load_documents()
-
-doc_embeddings = {
-	doc["id"]: model.encode(doc["text"], convert_to_tensor=True) for doc in documents
-}
-
-threshold = 0.25
-secondary_threshold = 0.2
-similarity_gap = 0.15  # Max allowed gap to keep weaker matches
 
 GITHUB = "https://github.com/rafonsomartins"
 LINKEDIN = "https://www.linkedin.com/in/rui-afonso-martins"
@@ -37,76 +38,111 @@ LINKEDIN = "https://www.linkedin.com/in/rui-afonso-martins"
 LINKS = f"Fell free to visit my LinkedIn or Github for more information:\n\nLinkedIn: {LINKEDIN}\n\nGithub: {GITHUB}\n"
 
 NO_INFORMATION = f"Sorry, I coulnd't find information about that.\n{LINKS}"
-API_DOWN = f"Sorry, it looks like the model is down.\n{LINKS}"
+API_DOWN = f"Sorry, it looks like the model is down. Please try again later.\n{LINKS}"
 
 LLM_NOT_RELATED = "Not related.\n"
 
 class QueryRequest(BaseModel):
+	session_id: Optional[str] = None
 	query: str
 
-def filter_by_similarity_gap(scored_docs):
-	filtered_docs = []
-	for i, (score, doc) in enumerate(scored_docs):
-		if i == 0:
-			filtered_docs.append((score, doc))
-			continue
-		prev_score = filtered_docs[-1][0]  # Last included document score
-		if prev_score - score <= similarity_gap:
-			filtered_docs.append((score, doc))
-		else:
-			break  # Stop including documents if the gap is exceeded
-	return filtered_docs
+# Load documents
+def load_documents():
+	documents = []
+	for filename in os.listdir(DOCS_FOLDER):
+		file_path = os.path.join(DOCS_FOLDER, filename)
+		if os.path.isfile(file_path) and filename.endswith(".txt"):
+			with open(file_path, "r", encoding="utf-8") as file:
+				content = file.read().strip()
+				documents.append({"id": filename, "text": content})
+	return documents
 
+documents = load_documents()
+doc_embeddings = {doc["id"]: model.encode(doc["text"], convert_to_tensor=True) for doc in documents}
 
+with open(os.path.join(DOCS_FOLDER, "aboutme"), "r", encoding="utf-8") as file:
+	aboutme = file.read().strip()
+
+# Define similarity thresholds
+threshold = 0.25
+secondary_threshold = 0.2
+similarity_gap = 0.15  # Max allowed gap to keep weaker matches
+
+# Helper functions
 def find_related_documents(query_embedding):
 	scored_docs = [
 		(util.cos_sim(query_embedding, doc_embeddings[doc["id"]]).item(), doc)
 		for doc in documents
 	]
-	
 	scored_docs.sort(reverse=True, key=lambda x: x[0])
-	# print("Sorted documents with scores:", scored_docs)
-	
+	# print("scored_docs:\n\n", scored_docs) # debug
 	if not scored_docs:
 		return []
-	
+
 	high_conf_docs = [(score, doc) for score, doc in scored_docs if score > threshold]
 	low_conf_docs = [(score, doc) for score, doc in scored_docs if secondary_threshold <= score <= threshold]
-	
+
 	if high_conf_docs:
-		filtered_high_conf = filter_by_similarity_gap(high_conf_docs)
-		return [doc["text"] for _, doc in filtered_high_conf]
-	
+		return [doc["text"] for _, doc in high_conf_docs]
+
 	if low_conf_docs:
-		filtered_low_conf = filter_by_similarity_gap(low_conf_docs)
-		if filtered_low_conf:
-			return [filtered_low_conf[0][1]["text"]]  # Return the best weak match
-	
+		return [low_conf_docs[0][1]["text"]]
+
 	return []
 
+def get_session_history(session_id):
+	"""Retrieve session history from Regis (Redis)."""
+	history = regis.lrange(f"session:{session_id}", 0, -1)
+	return history if history else ["NO history yet"]
 
-def query_gemini(context_docs, user_query):
-	context_text = "\n".join(context_docs)
-	prompt = f"Pretend that you are Rui secretary. Don't mention you are being passed a context. If there is no related information in the context just answer with '{LLM_NOT_RELATED}' exactly like this, no extra breakline or anything. Dont' mention you were given context.\n\nContext:\n{context_text}\n\nUser Query: {user_query}\n\n"
+def save_session_history(session_id, conversation_history):
+	"""Save conversation history to Regis (Redis)."""
+	regis.delete(f"session:{session_id}")  # Clear previous history
+	regis.rpush(f"session:{session_id}", *conversation_history)  # Save new history
+
+def query_gemini(session_id, user_query, related_docs):
+	context_text = "\n".join(related_docs)
+
+	# Retrieve session history from Regis (Redis)
+	conversation_history = get_session_history(session_id)
+
+	prompt = f"This is some information about Rui: {aboutme}\nThis is a conversation between a recruiter and a Rui's assistent. Context (Rui wrote this):\n{context_text}\n\n\nHistory:{conversation_history}\n\n\nRecruiter: {user_query}\n\nAssistant:"
+
+	# Append query to session history
+	conversation_history.append(f"Recruiter: {user_query}")
+
+	# Add last 5 exchanges (limit context size)
+	first_prompt = "\n".join(conversation_history[-5:]) + "\n" + prompt
 
 	try:
 		model = genai.GenerativeModel("gemini-2.0-flash")
-		response = model.generate_content(prompt)
-	except Exception as e:
+		response = model.generate_content(first_prompt)
+		# print("first response:\n\n", response) # debug
+		second_prompt = "Make this more formal and human-like. Rui is not applying to any jobs. Make sure to remove buzzwords\n\n" + response.text
+		final_response = model.generate_content(second_prompt)
+	except Exception:
 		return API_DOWN
 
-	if response.text == LLM_NOT_RELATED:
-		return NO_INFORMATION
-	return response.text if response else NO_INFORMATION
+	# Store response in history
+	conversation_history.append(f"Assistant: {final_response.text}")
 
+	# Save updated session history in Regis (Redis)
+	save_session_history(session_id, conversation_history)
+
+	return final_response.text if final_response else NO_INFORMATION
+
+# API Endpoints
 @app.post("/query")
 def query_rag(request: QueryRequest):
+	session_id = request.session_id or str(uuid4())  # Create a session if none provided
 	query_embedding = model.encode(request.query, convert_to_tensor=True)
 	related_docs = find_related_documents(query_embedding)
 
 	if not related_docs:
-		return NO_INFORMATION
+		return {"session_id": session_id, "response": NO_INFORMATION}
 
-	gemini_response = query_gemini(related_docs, request.query)
-	
-	return gemini_response
+	# print("context:\n\n", related_docs) # debug
+
+	gemini_response = query_gemini(session_id, request.query, related_docs)
+
+	return {"session_id": session_id, "response": gemini_response}
