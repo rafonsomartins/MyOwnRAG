@@ -57,7 +57,7 @@ const handleSubmit = async (e) => {
 	} catch (error) {
 	console.error('Error fetching response:', error);
 	setMessages(prev => [...prev, { 
-		text: "Sorry, a technical error. Please try again later.\n\nFell free to visit my LinkedIn or Github for more information:\n\nLinkedIn: https://www.linkedin.com/in/rui-afonso-martins\n\nGithub: https://github.com/rafonsomartins\n", 
+		text: "Sorry, a technical error. Please try again later.\n\nFell free to visit my https://www.linkedin.com/in/rui-afonso-martins or https://github.com/rafonsomartins for more information.\n", 
 		isUser: false 
 	}]);
 	} finally {
@@ -67,9 +67,92 @@ const handleSubmit = async (e) => {
 
 const clearChat = () => {
 	setMessages([]);
-	// Optionally reset session ID if you want a completely fresh start
-	// setSessionId(null);
-	// localStorage.removeItem('chatSessionId');
+	// We keep the session ID even when clearing the chat
+};
+
+// Function to render message text with custom link handling
+const renderMessageText = (text) => {
+	// Regular expressions for LinkedIn and GitHub URLs
+	const linkedInRegex = /(https?:\/\/www\.linkedin\.com\/in\/[^\s]+)/g;
+	const githubRegex = /(https?:\/\/github\.com\/[^\s]+)/g;
+	const otherUrlRegex = /(https?:\/\/(?!www\.linkedin\.com|github\.com)[^\s]+)/g;
+	
+	// Split the text by newlines to preserve formatting
+	const lines = text.split('\n');
+	
+	return lines.map((line, lineIndex) => {
+	// First replace LinkedIn URLs with "LinkedIn" text
+	let processedLine = line;
+	const linkedInUrls = line.match(linkedInRegex) || [];
+	
+	linkedInUrls.forEach(url => {
+		processedLine = processedLine.replace(url, `|LinkedIn_URL:${url}|`);
+	});
+	
+	// Then replace GitHub URLs with "Github" text
+	const githubUrls = line.match(githubRegex) || [];
+	githubUrls.forEach(url => {
+		processedLine = processedLine.replace(url, `|Github_URL:${url}|`);
+	});
+	
+	// Handle other URLs normally
+	const otherUrls = processedLine.match(otherUrlRegex) || [];
+	otherUrls.forEach(url => {
+		processedLine = processedLine.replace(url, `|URL:${url}|`);
+	});
+	
+	// Now process the placeholders
+	const parts = processedLine.split(/(\|LinkedIn_URL:[^|]+\||\|Github_URL:[^|]+\||\|URL:[^|]+\|)/);
+	
+	return (
+		<p key={lineIndex}>
+		{parts.map((part, partIndex) => {
+			if (part.startsWith('|LinkedIn_URL:')) {
+			const url = part.substring(13, part.length - 1);
+			return (
+				<a 
+				key={partIndex} 
+				href={url} 
+				target="_blank" 
+				rel="noopener noreferrer"
+				className="message-link"
+				>
+				LinkedIn
+				</a>
+			);
+			} else if (part.startsWith('|Github_URL:')) {
+			const url = part.substring(12, part.length - 1);
+			return (
+				<a 
+				key={partIndex} 
+				href={url} 
+				target="_blank" 
+				rel="noopener noreferrer"
+				className="message-link"
+				>
+				Github
+				</a>
+			);
+			} else if (part.startsWith('|URL:')) {
+			const url = part.substring(5, part.length - 1);
+			return (
+				<a 
+				key={partIndex} 
+				href={url} 
+				target="_blank" 
+				rel="noopener noreferrer"
+				className="message-link"
+				>
+				{url}
+				</a>
+			);
+			}
+			// Regular text
+			return part;
+		})}
+		</p>
+	);
+	});
 };
 
 return (
@@ -94,9 +177,7 @@ return (
 			className={`message ${message.isUser ? 'user-message' : 'bot-message'}`}
 			>
 			<div className="message-content">
-				{message.text.split('\n').map((text, i) => (
-				<p key={i}>{text}</p>
-				))}
+				{renderMessageText(message.text)}
 			</div>
 			</div>
 		))}
@@ -131,7 +212,7 @@ return (
 	</div>
 	
 	<footer className="footer">
-		<p>Powered by Gemini • Developed by {sessionId ? `Session: ${sessionId.slice(0, 8)}...` : 'New Session'}</p>
+		<p>Powered by Gemini API • Developed by Rui Afonso Martins</p>
 	</footer>
 	</div>
 );

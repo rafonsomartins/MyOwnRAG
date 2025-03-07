@@ -143,6 +143,28 @@ body {
 	margin-bottom: 0;
 }
 
+/* Styling for links in messages */
+.message-link {
+	color: inherit;
+	text-decoration: underline;
+	word-break: break-all;
+	transition: var(--transition);
+}
+
+.user-message .message-link {
+	color: white;
+	text-decoration-color: rgba(255, 255, 255, 0.7);
+}
+
+.bot-message .message-link {
+	color: #0066cc;
+	font-weight: 500;
+}
+
+.message-link:hover {
+	opacity: 0.8;
+}
+
 .typing-indicator {
 	display: flex;
 	align-items: center;

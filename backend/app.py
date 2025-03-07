@@ -13,7 +13,7 @@ DOCS_FOLDER = "docs"
 GITHUB = "https://github.com/rafonsomartins"
 LINKEDIN = "https://www.linkedin.com/in/rui-afonso-martins"
 
-LINKS = f"Fell free to visit my LinkedIn or Github for more information:\n\nLinkedIn: {LINKEDIN}\n\nGithub: {GITHUB}\n"
+LINKS = f"Fell free to visit my {LINKEDIN} or {GITHUB} for more information.\n"
 
 NO_INFORMATION = f"Sorry, I coulnd't find information about that.\n{LINKS}"
 API_DOWN = f"Sorry, it looks like the model is down. Please try again later.\n{LINKS}"
