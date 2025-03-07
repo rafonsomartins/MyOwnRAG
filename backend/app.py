@@ -11,7 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 DOCS_FOLDER = "docs"
 
 GITHUB = "https://github.com/rafonsomartins"
-LINKEDIN = "https://www.linkedin.com/in/rui-afonso-martins"
+LINKEDIN = "https://linkedin.com/in/rui-afonso-martins"
 
 LINKS = f"Fell free to visit my {LINKEDIN} or {GITHUB} for more information.\n"
 

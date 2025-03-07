@@ -57,7 +57,7 @@ const handleSubmit = async (e) => {
 	} catch (error) {
 	console.error('Error fetching response:', error);
 	setMessages(prev => [...prev, { 
-		text: "Sorry, a technical error. Please try again later.\n\nFell free to visit my https://www.linkedin.com/in/rui-afonso-martins or https://github.com/rafonsomartins for more information.\n", 
+		text: "Sorry, a technical error. Please try again later.\n\nFell free to visit my https://linkedin.com/in/rui-afonso-martins or https://github.com/rafonsomartins for more information.\n", 
 		isUser: false 
 	}]);
 	} finally {
@@ -73,15 +73,15 @@ const clearChat = () => {
 // Function to render message text with custom link handling
 const renderMessageText = (text) => {
 	// Regular expressions for LinkedIn and GitHub URLs
-	const linkedInRegex = /(https?:\/\/www\.linkedin\.com\/in\/[^\s]+)/g;
+	const linkedInRegex = /(https?:\/\/linkedin\.com\/in\/[^\s]+)/g;
 	const githubRegex = /(https?:\/\/github\.com\/[^\s]+)/g;
-	const otherUrlRegex = /(https?:\/\/(?!www\.linkedin\.com|github\.com)[^\s]+)/g;
+	const otherUrlRegex = /(https?:\/\/(?!linkedin\.com|github\.com)[^\s]+)/g;
 	
 	// Split the text by newlines to preserve formatting
 	const lines = text.split('\n');
 	
 	return lines.map((line, lineIndex) => {
-	// First replace LinkedIn URLs with "LinkedIn" text
+	// Replace LinkedIn URLs with custom markers
 	let processedLine = line;
 	const linkedInUrls = line.match(linkedInRegex) || [];
 	
@@ -89,7 +89,7 @@ const renderMessageText = (text) => {
 		processedLine = processedLine.replace(url, `|LinkedIn_URL:${url}|`);
 	});
 	
-	// Then replace GitHub URLs with "Github" text
+	// Replace GitHub URLs with custom markers
 	const githubUrls = line.match(githubRegex) || [];
 	githubUrls.forEach(url => {
 		processedLine = processedLine.replace(url, `|Github_URL:${url}|`);
@@ -101,14 +101,15 @@ const renderMessageText = (text) => {
 		processedLine = processedLine.replace(url, `|URL:${url}|`);
 	});
 	
-	// Now process the placeholders
+	// Now process the placeholders to create clickable links
 	const parts = processedLine.split(/(\|LinkedIn_URL:[^|]+\||\|Github_URL:[^|]+\||\|URL:[^|]+\|)/);
-	
+
 	return (
 		<p key={lineIndex}>
 		{parts.map((part, partIndex) => {
+			// Check for LinkedIn URL
 			if (part.startsWith('|LinkedIn_URL:')) {
-			const url = part.substring(13, part.length - 1);
+			const url = part.substring(15, part.length - 1); // Adjust the start index
 			return (
 				<a 
 				key={partIndex} 
@@ -120,8 +121,10 @@ const renderMessageText = (text) => {
 				LinkedIn
 				</a>
 			);
-			} else if (part.startsWith('|Github_URL:')) {
-			const url = part.substring(12, part.length - 1);
+			} 
+			// Check for GitHub URL
+			else if (part.startsWith('|Github_URL:')) {
+			const url = part.substring(13, part.length - 1); // Adjust the start index
 			return (
 				<a 
 				key={partIndex} 
@@ -130,11 +133,13 @@ const renderMessageText = (text) => {
 				rel="noopener noreferrer"
 				className="message-link"
 				>
-				Github
+				GitHub
 				</a>
 			);
-			} else if (part.startsWith('|URL:')) {
-			const url = part.substring(5, part.length - 1);
+			} 
+			// Check for any other URL
+			else if (part.startsWith('|URL:')) {
+			const url = part.substring(5, part.length - 1); // Adjust the start index
 			return (
 				<a 
 				key={partIndex} 
@@ -147,13 +152,16 @@ const renderMessageText = (text) => {
 				</a>
 			);
 			}
-			// Regular text
+			
+			// Regular text (non-URL part)
 			return part;
 		})}
 		</p>
 	);
 	});
 };
+
+
 
 return (
 	<div className="app-container">
