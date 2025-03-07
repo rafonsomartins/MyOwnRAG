@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI
 from sentence_transformers import SentenceTransformer, util
 from pydantic import BaseModel
 import google.generativeai as genai
@@ -7,6 +7,25 @@ import redis  # Regis added here
 from uuid import uuid4
 from typing import Optional
 from fastapi.middleware.cors import CORSMiddleware
+
+DOCS_FOLDER = "docs"
+
+GITHUB = "https://github.com/rafonsomartins"
+LINKEDIN = "https://www.linkedin.com/in/rui-afonso-martins"
+
+LINKS = f"Fell free to visit my LinkedIn or Github for more information:\n\nLinkedIn: {LINKEDIN}\n\nGithub: {GITHUB}\n"
+
+NO_INFORMATION = f"Sorry, I coulnd't find information about that.\n{LINKS}"
+API_DOWN = f"Sorry, it looks like the model is down. Please try again later.\n{LINKS}"
+
+LLM_NOT_RELATED = "Not related.\n"
+
+API_KEY = os.getenv("GEMINI_API_KEY")
+
+# Define similarity thresholds
+threshold = 0.25
+secondary_threshold = 0.2
+similarity_gap = 0.15  # Max allowed gap to keep weaker matches
 
 app = FastAPI()
 
@@ -27,20 +46,8 @@ app.add_middleware(
 # Regis: Redis session storage (Replace localhost with your Redis server if needed)
 regis = redis.Redis(host="localhost", port=6379, decode_responses=True)
 
-genai.configure(api_key="")
+genai.configure(api_key="AIzaSyApivS6-dkcv3pHK1YbRl9KURt_Yq43WvA")
 model = SentenceTransformer("all-MiniLM-L6-v2")
-
-DOCS_FOLDER = "docs"
-
-GITHUB = "https://github.com/rafonsomartins"
-LINKEDIN = "https://www.linkedin.com/in/rui-afonso-martins"
-
-LINKS = f"Fell free to visit my LinkedIn or Github for more information:\n\nLinkedIn: {LINKEDIN}\n\nGithub: {GITHUB}\n"
-
-NO_INFORMATION = f"Sorry, I coulnd't find information about that.\n{LINKS}"
-API_DOWN = f"Sorry, it looks like the model is down. Please try again later.\n{LINKS}"
-
-LLM_NOT_RELATED = "Not related.\n"
 
 class QueryRequest(BaseModel):
 	session_id: Optional[str] = None
@@ -62,11 +69,6 @@ doc_embeddings = {doc["id"]: model.encode(doc["text"], convert_to_tensor=True) f
 
 with open(os.path.join(DOCS_FOLDER, "aboutme"), "r", encoding="utf-8") as file:
 	aboutme = file.read().strip()
-
-# Define similarity thresholds
-threshold = 0.25
-secondary_threshold = 0.2
-similarity_gap = 0.15  # Max allowed gap to keep weaker matches
 
 # Helper functions
 def find_related_documents(query_embedding):
