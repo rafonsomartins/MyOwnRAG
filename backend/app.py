@@ -119,13 +119,10 @@ def query_gemini(session_id, user_query, related_docs):
 	# Append query to session history
 	conversation_history.append(f"Recruiter: {user_query}")
 
-	# Add last 5 exchanges (limit context size)
-	first_prompt = "\n".join(conversation_history[-5:]) + "\n" + prompt
-
 	try:
 		model = genai.GenerativeModel("gemini-2.0-flash")
-		print("first_prompt:\n\n", first_prompt)
-		response = model.generate_content(first_prompt)
+		print("first_prompt:\n\n", prompt) # debug
+		response = model.generate_content(prompt)
 		print("\n\nfirst response:\n\n", response.text) # debug
 		if response.text == LLM_NOT_RELATED:
 			return NO_INFORMATION
@@ -158,6 +155,7 @@ def check_similarity_to_aboutme(query_embedding):
 @app.post("/query")
 def query_rag(request: QueryRequest):
 	session_id = request.session_id or str(uuid4())  # Create a session if none provided
+	print("session:", session_id) # debug
 
 	query_embedding = model.encode(request.query, convert_to_tensor=True)
 	related_docs = find_related_documents(query_embedding)

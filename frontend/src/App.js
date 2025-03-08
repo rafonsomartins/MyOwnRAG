@@ -1,4 +1,4 @@
-// App.js
+// App.js - Modern ChatBot UI
 import React, { useState, useEffect, useRef } from 'react';
 import './App.css';
 
@@ -57,7 +57,7 @@ const handleSubmit = async (e) => {
 	} catch (error) {
 	console.error('Error fetching response:', error);
 	setMessages(prev => [...prev, { 
-		text: "Sorry, a technical error occurred. Please try again later.\n\nFell free to visit my https://linkedin.com/in/rui-afonso-martins or https://github.com/rafonsomartins for more information.\n", 
+		text: "Sorry, a technical error occurred. Please try again later.\n\nFeel free to visit my https://linkedin.com/in/rui-afonso-martins or https://github.com/rafonsomartins for more information.", 
 		isUser: false 
 	}]);
 	} finally {
@@ -67,15 +67,16 @@ const handleSubmit = async (e) => {
 
 const clearChat = () => {
 	setMessages([]);
-	// We keep the session ID even when clearing the chat
+	setSessionId(null);
+	localStorage.removeItem('chatSessionId');
 };
 
 // Function to render message text with custom link handling
 const renderMessageText = (text) => {
-	// Regular expressions for LinkedIn and GitHub URLs
-	const linkedInRegex = /(https?:\/\/linkedin\.com\/in\/[^\s]+)/g;
-	const githubRegex = /(https?:\/\/github\.com\/[^\s]+)/g;
-	const otherUrlRegex = /(https?:\/\/(?!linkedin\.com|github\.com)[^\s]+)/g;
+	// Regular expressions for LinkedIn and GitHub URLs - Fixed to properly match https:// prefix
+	const linkedInRegex = /(https?:\/\/(?:www\.)?linkedin\.com\/in\/[^\s]+)/g;
+	const githubRegex = /(https?:\/\/(?:www\.)?github\.com\/[^\s]+)/g;
+	const otherUrlRegex = /(https?:\/\/(?!(?:www\.)?linkedin\.com|(?:www\.)?github\.com)[^\s]+)/g;
 	
 	// Split the text by newlines to preserve formatting
 	const lines = text.split('\n');
@@ -109,7 +110,7 @@ const renderMessageText = (text) => {
 		{parts.map((part, partIndex) => {
 			// Check for LinkedIn URL
 			if (part.startsWith('|LinkedIn_URL:')) {
-			const url = part.substring(15, part.length - 1); // Adjust the start index
+			const url = part.substring(14, part.length - 1);
 			return (
 				<a 
 				key={partIndex} 
@@ -124,7 +125,7 @@ const renderMessageText = (text) => {
 			} 
 			// Check for GitHub URL
 			else if (part.startsWith('|Github_URL:')) {
-			const url = part.substring(13, part.length - 1); // Adjust the start index
+			const url = part.substring(12, part.length - 1);
 			return (
 				<a 
 				key={partIndex} 
@@ -139,7 +140,7 @@ const renderMessageText = (text) => {
 			} 
 			// Check for any other URL
 			else if (part.startsWith('|URL:')) {
-			const url = part.substring(5, part.length - 1); // Adjust the start index
+			const url = part.substring(5, part.length - 1);
 			return (
 				<a 
 				key={partIndex} 
@@ -161,7 +162,21 @@ const renderMessageText = (text) => {
 	});
 };
 
+// Group messages by sender
+const groupedMessages = [];
+let currentGroup = null;
 
+messages.forEach((message) => {
+	if (!currentGroup || currentGroup.isUser !== message.isUser) {
+	currentGroup = {
+		isUser: message.isUser,
+		messages: [message]
+	};
+	groupedMessages.push(currentGroup);
+	} else {
+	currentGroup.messages.push(message);
+	}
+});
 
 return (
 	<div className="app-container">
@@ -172,31 +187,46 @@ return (
 
 	<div className="chat-container">
 		<div className="messages">
-		{messages.length === 0 && (
+		{groupedMessages.length === 0 && (
 			<div className="welcome-message">
 			<h2>Welcome to Rui's Assistant</h2>
 			<p>Ask me anything about Rui's background, skills, or experience!</p>
 			</div>
 		)}
 		
-		{messages.map((message, index) => (
+		{groupedMessages.map((group, groupIndex) => (
 			<div 
-			key={index} 
-			className={`message ${message.isUser ? 'user-message' : 'bot-message'}`}
+			key={groupIndex} 
+			className={`message-group ${group.isUser ? 'user-group' : 'bot-group'}`}
 			>
-			<div className="message-content">
-				{renderMessageText(message.text)}
-			</div>
+			{group.messages.map((message, messageIndex) => (
+				<div 
+				key={messageIndex} 
+				className={`message ${message.isUser ? 'user-message' : 'bot-message'}`}
+				>
+				{messageIndex === 0 && (
+					<div className="message-avatar">
+					{message.isUser ? 'U' : 'R'}
+					</div>
+				)}
+				<div className="message-content">
+					{renderMessageText(message.text)}
+				</div>
+				</div>
+			))}
 			</div>
 		))}
 		
 		{loading && (
+			<div className="message-group bot-group">
 			<div className="message bot-message">
-			<div className="message-content">
+				<div className="message-avatar">R</div>
+				<div className="message-content">
 				<div className="typing-indicator">
-				<span></span>
-				<span></span>
-				<span></span>
+					<span></span>
+					<span></span>
+					<span></span>
+				</div>
 				</div>
 			</div>
 			</div>
@@ -205,18 +235,23 @@ return (
 		<div ref={messagesEndRef} />
 		</div>
 
+		<div className="input-container">
 		<form onSubmit={handleSubmit} className="input-form">
-		<input
+			<input
 			type="text"
 			value={input}
 			onChange={(e) => setInput(e.target.value)}
 			placeholder="Ask about Rui..."
 			disabled={loading}
-		/>
-		<button type="submit" disabled={loading || input.trim() === ''}>
-			Send
-		</button>
+			/>
+			<button type="submit" disabled={loading || input.trim() === ''}>
+			<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+				<path d="M22 2L11 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+				<path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+			</svg>
+			</button>
 		</form>
+		</div>
 	</div>
 	
 	<footer className="footer">
