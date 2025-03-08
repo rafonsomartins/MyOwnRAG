@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from sentence_transformers import SentenceTransformer, util
 from pydantic import BaseModel
 import google.generativeai as genai
+from dotenv import load_dotenv
 import os
 import redis  # Regis added here
 from uuid import uuid4
@@ -20,6 +21,7 @@ API_DOWN = f"Sorry, it looks like the model is down. Please try again later.\n{L
 
 LLM_NOT_RELATED = "Not related.\n"
 
+load_dotenv()
 API_KEY = os.getenv("GEMINI_API_KEY")
 
 # Define similarity thresholds
@@ -46,7 +48,7 @@ app.add_middleware(
 # Regis: Redis session storage (Replace localhost with your Redis server if needed)
 regis = redis.Redis(host="localhost", port=6379, decode_responses=True)
 
-genai.configure(api_key="AIzaSyApivS6-dkcv3pHK1YbRl9KURt_Yq43WvA")
+genai.configure(api_key=API_KEY)
 model = SentenceTransformer("all-MiniLM-L6-v2")
 
 class QueryRequest(BaseModel):
@@ -69,6 +71,9 @@ doc_embeddings = {doc["id"]: model.encode(doc["text"], convert_to_tensor=True) f
 
 with open(os.path.join(DOCS_FOLDER, "aboutme"), "r", encoding="utf-8") as file:
 	aboutme = file.read().strip()
+
+with open(os.path.join(DOCS_FOLDER, "greetings"), "r", encoding="utf-8") as file:
+	greetings = file.read().strip()
 
 # Helper functions
 def find_related_documents(query_embedding):
@@ -95,7 +100,7 @@ def find_related_documents(query_embedding):
 def get_session_history(session_id):
 	"""Retrieve session history from Regis (Redis)."""
 	history = regis.lrange(f"session:{session_id}", 0, -1)
-	return history if history else ["NO history yet"]
+	return history if history else ["No history yet."]
 
 def save_session_history(session_id, conversation_history):
 	"""Save conversation history to Regis (Redis)."""
@@ -108,7 +113,7 @@ def query_gemini(session_id, user_query, related_docs):
 	# Retrieve session history from Regis (Redis)
 	conversation_history = get_session_history(session_id)
 
-	prompt = f"This is some information about Rui: {aboutme}\nThis is a conversation between a recruiter and a Rui's assistent. Context (Rui wrote this):\n{context_text}\n\n\nHistory:{conversation_history}\n\n\nRecruiter: {user_query}\n\nAssistant:"
+	prompt = f"This is some information about Rui: {aboutme}\nThis is a conversation between a recruiter and a Rui's assistent. If the Recruiter doesn't know something, instead of making something up, they just reply with '{LLM_NOT_RELATED}'. Context (Rui wrote this):\n{context_text}\n\n\nHistory:{conversation_history}\n\n\nRecruiter: {user_query}\n\nAssistant:"
 
 	# Append query to session history
 	conversation_history.append(f"Recruiter: {user_query}")
@@ -119,7 +124,9 @@ def query_gemini(session_id, user_query, related_docs):
 	try:
 		model = genai.GenerativeModel("gemini-2.0-flash")
 		response = model.generate_content(first_prompt)
-		# print("first response:\n\n", response) # debug
+		# print("first response:\n\n", response.text) # debug
+		if response.text == LLM_NOT_RELATED:
+			return NO_INFORMATION
 		second_prompt = "Make this more formal and human-like. Rui is not applying to any jobs. Make sure to remove buzzwords\n\n" + response.text
 		final_response = model.generate_content(second_prompt)
 	except Exception:
@@ -133,15 +140,32 @@ def query_gemini(session_id, user_query, related_docs):
 
 	return final_response.text if final_response else NO_INFORMATION
 
+def check_similarity_to_greetings(query_embedding):
+	greetings_embedding = model.encode(greetings, convert_to_tensor=True)  # Embedding of the 'greetings' content
+	similarity_score = util.cos_sim(query_embedding, greetings_embedding).item()
+	# print("similarity_score:\n\n", similarity_score) # debug
+	return similarity_score
+
+def check_similarity_to_aboutme(query_embedding):
+	aboutme_embedding = model.encode(aboutme, convert_to_tensor=True)  # Embedding of the 'aboutme' content
+	similarity_score = util.cos_sim(query_embedding, aboutme_embedding).item()
+	# print("similarity_score:\n\n", similarity_score) # debug
+	return similarity_score
+
 # API Endpoints
 @app.post("/query")
 def query_rag(request: QueryRequest):
 	session_id = request.session_id or str(uuid4())  # Create a session if none provided
+
 	query_embedding = model.encode(request.query, convert_to_tensor=True)
 	related_docs = find_related_documents(query_embedding)
 
 	if not related_docs:
-		return {"session_id": session_id, "response": NO_INFORMATION}
+		if check_similarity_to_greetings(query_embedding) >= secondary_threshold:
+			return {"session_id": session_id, "response": "Hello! How can I assist you today?"}
+		if check_similarity_to_aboutme(query_embedding) < secondary_threshold:
+			return {"session_id": session_id, "response": NO_INFORMATION}
+		related_docs = ["No more context yet."]
 
 	# print("context:\n\n", related_docs) # debug
 
