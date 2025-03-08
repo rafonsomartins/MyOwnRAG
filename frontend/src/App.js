@@ -57,7 +57,7 @@ const handleSubmit = async (e) => {
 	} catch (error) {
 	console.error('Error fetching response:', error);
 	setMessages(prev => [...prev, { 
-		text: "Sorry, a technical error. Please try again later.\n\nFell free to visit my https://linkedin.com/in/rui-afonso-martins or https://github.com/rafonsomartins for more information.\n", 
+		text: "Sorry, a technical error occurred. Please try again later.\n\nFell free to visit my https://linkedin.com/in/rui-afonso-martins or https://github.com/rafonsomartins for more information.\n", 
 		isUser: false 
 	}]);
 	} finally {

@@ -27,6 +27,7 @@ API_KEY = os.getenv("GEMINI_API_KEY")
 # Define similarity thresholds
 threshold = 0.25
 secondary_threshold = 0.2
+third_threshold = 0.15
 similarity_gap = 0.15  # Max allowed gap to keep weaker matches
 
 app = FastAPI()
@@ -113,7 +114,7 @@ def query_gemini(session_id, user_query, related_docs):
 	# Retrieve session history from Regis (Redis)
 	conversation_history = get_session_history(session_id)
 
-	prompt = f"This is some information about Rui: {aboutme}\nThis is a conversation between a recruiter and a Rui's assistent. If the Recruiter doesn't know something, instead of making something up, they just reply with '{LLM_NOT_RELATED}'. Context (Rui wrote this):\n{context_text}\n\n\nHistory:{conversation_history}\n\n\nRecruiter: {user_query}\n\nAssistant:"
+	prompt = f"This is some information about Rui: {aboutme}\nThis is a conversation between a recruiter and a Rui's assistent. If the Assistant doesn't know something, instead of making something up, they just reply exactly with: '{LLM_NOT_RELATED}'. The Recruiter doesn't share context directly. Context (Rui wrote this):\n{context_text}\n\n\nHistory:{conversation_history}\n\n\nRecruiter: {user_query}\n\nAssistant:"
 
 	# Append query to session history
 	conversation_history.append(f"Recruiter: {user_query}")
@@ -123,8 +124,9 @@ def query_gemini(session_id, user_query, related_docs):
 
 	try:
 		model = genai.GenerativeModel("gemini-2.0-flash")
+		print("first_prompt:\n\n", first_prompt)
 		response = model.generate_content(first_prompt)
-		# print("first response:\n\n", response.text) # debug
+		print("\n\nfirst response:\n\n", response.text) # debug
 		if response.text == LLM_NOT_RELATED:
 			return NO_INFORMATION
 		second_prompt = "Make this more formal and human-like. Rui is not applying to any jobs. Make sure to remove buzzwords\n\n" + response.text
@@ -163,7 +165,7 @@ def query_rag(request: QueryRequest):
 	if not related_docs:
 		if check_similarity_to_greetings(query_embedding) >= secondary_threshold:
 			return {"session_id": session_id, "response": "Hello! How can I assist you today?"}
-		if check_similarity_to_aboutme(query_embedding) < secondary_threshold:
+		if check_similarity_to_aboutme(query_embedding) < third_threshold:
 			return {"session_id": session_id, "response": NO_INFORMATION}
 		related_docs = ["No more context yet."]
 
