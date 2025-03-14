@@ -107,7 +107,7 @@ html {
 	font-size: 1.5rem;
 	font-weight: 600;
 	color: inherit;
-	font-family: 'Georgia', serif;
+	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
 .clear-button {
@@ -210,7 +210,7 @@ html {
 }
 
 .question-button {
-	background-color: var(--button-light);
+	background-color: var(--background-light);
 	color: var(--text-light);
 	border: 1px solid var(--border-light);
 	border-radius: 20px;
@@ -221,7 +221,9 @@ html {
 }
 
 .question-button:hover {
-	background-color: var(--border-light);
+	background-color: var(--primary-color);
+	color: white;
+	border-color: var(--primary-color);
 }
 
 /* Message styles */
@@ -249,6 +251,8 @@ html {
 	max-width: 85%;
 	padding: 0.75rem 1rem;
 	margin-bottom: 4px;
+	width: 100%;
+	max-width: 80%;
 }
 
 .assistant-message .message-content {
@@ -279,6 +283,7 @@ html {
 .message-time {
 	font-size: 0.75rem;
 	color: var(--text-secondary-light);
+	display: none;
 }
 
 .message-body {
@@ -315,6 +320,7 @@ html {
 	stroke-width: 2;
 	stroke-linecap: round;
 	stroke-linejoin: round;
+	display: none;
 }
 
 /* Typing indicator */
@@ -456,4 +462,77 @@ html {
 	flex-direction: column;
 	align-items: stretch;
 	}
+}
+
+/* Add sidebar styles */
+.main-content {
+	display: flex;
+	flex: 1;
+	overflow: hidden;
+}
+
+.sidebar {
+	width: 250px;
+	background: var(--message-bg-light); /* Bot message background color */
+	border-right: 1px solid var(--border-light);
+	transition: all 0.3s ease;
+	position: relative;
+	overflow: hidden; /* Change from overflow: auto to hidden */
+}
+
+.sidebar .suggested-questions {
+	opacity: 1;
+	transition: opacity 0.2s ease;
+	padding: 1rem;
+}
+
+.sidebar.closed {
+	width: 0;
+}
+
+.sidebar.closed .suggested-questions {
+	opacity: 0;
+}
+
+/* Update the toggle button transition */
+.sidebar-toggle {
+	position: fixed; /* Change from absolute to fixed */
+	left: 0; /* Change from right: -30px to left: 0 */
+	top: 50%; /* Change from 10px to 50% */
+	transform: translateY(-50%); /* Add this to center vertically */
+	width: 30px;
+	height: 60px; /* Make button taller */
+	border: none;
+	background: var(--primary-color);
+	color: white;
+	cursor: pointer;
+	z-index: 100;
+	border-radius: 0 4px 4px 0; /* Round only right corners */
+	transition: left 0.3s ease, background-color 0.2s ease; /* Add transition */
+}
+
+.sidebar.open + .chat-container .sidebar-toggle {
+	left: 250px; /* Move button when sidebar is open */
+}
+
+/* Add hover effect */
+.sidebar-toggle:hover {
+	background: var(--primary-hover);
+}
+
+/* Dark mode adjustments */
+.dark-mode .sidebar {
+	background: var(--message-bg-dark); /* Bot message background color in dark mode */
+	border-color: var(--border-dark);
+}
+
+.dark-mode .question-button {
+	background-color: var(--background-dark);
+	color: var(--text-dark);
+	border-color: var(--border-dark);
+}
+
+.dark-mode .question-button:hover {
+	background-color: var(--primary-color);
+	border-color: var(--primary-color);
 }
