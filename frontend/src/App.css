@@ -43,7 +43,7 @@ html {
 	flex-direction: column;
 	height: 100vh;
 	width: 100vw;
-	overflow: auto;
+	overflow: hidden; /* Change from auto to hidden */
 	background-color: var(--background-light);
 	color: var(--text-light);
 	transition: all 0.3s ease;
@@ -80,18 +80,47 @@ html {
 
 .dark-mode .message-time,
 .dark-mode .footer p {
-	color: var(--text-secondary-dark);
+	color: var (--text-secondary-dark);
 }
 
 /* Header styles */
 .header {
+	position: fixed;
+	width: 100%;
+	z-index: 20;  /* Increased z-index */
+	background-color: var(--background-light);
+}
+
+.header-title-bg {
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 250px;
+	height: 100%;
+	background-color: var(--message-bg-light);
+	border-right: 1px solid var(--border-light);
+	transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+	transform: translateX(-100%);
+	will-change: transform;
+	z-index: 1;  /* Add z-index */
+}
+
+.header.sidebar-open .header-title-bg {
+	transform: translateX(0);
+}
+
+.header-content {
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
 	padding: 1rem 1.5rem;
-	background-color: var(--background-light);
-	z-index: 10;
-	transition: all 0.3s ease;
+	position: relative;
+	z-index: 25;  /* Higher z-index than header and sidebar */
+}
+
+.dark-mode .header-title-bg {
+	background-color: var(--message-bg-dark);
+	border-color: var(--border-dark);
 }
 
 .header-left, .header-right {
@@ -156,11 +185,37 @@ html {
 	flex: 1;
 	display: flex;
 	flex-direction: column;
-	max-width: 1200px;
 	width: 100%;
-	margin: 0 auto;
-	padding: 0 1rem;
-	overflow: hidden;
+	max-width: 1000px;  /* Add max-width */
+	margin: 0 auto;     /* Center the container */
+	padding: 1rem 2rem; /* Increase horizontal padding */
+	transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+	transform: translateZ(0);
+	backface-visibility: hidden;
+	perspective: 1000px;
+	will-change: transform, width, margin;
+	min-height: calc(100vh - 60px);
+	position: relative;
+}
+
+.sidebar:not(.closed) + .chat-container {
+	margin-left: auto;
+    margin-right: auto;
+    padding-left: calc(250px + 2rem);
+    padding-right: 2rem;
+}
+
+@media (max-width: 1200px) {
+	.chat-container {
+		max-width: 100%;
+		padding: 1rem 2rem;
+	}
+
+	.sidebar:not(.closed) + .chat-container {
+		margin-left: 250px;
+		padding-left: 2rem;
+        padding-right: 2rem;
+	}
 }
 
 .messages {
@@ -169,6 +224,14 @@ html {
 	padding: 1rem 0;
 	scroll-behavior: smooth;
 	scrollbar-gutter: stable;
+	min-height: 0; /* Important for flex child scrolling */
+	transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+	transform: translateZ(0);
+	backface-visibility: hidden;
+	perspective: 1000px;
+	will-change: transform, width;
+	padding-top: 60px;
+	padding-bottom: -2000px;
 }
 
 /* Welcome section */
@@ -206,7 +269,7 @@ html {
 	flex-wrap: wrap;
 	justify-content: center;
 	gap: 0.75rem;
-	margin-top: 2rem;
+	margin-top: 1rem;
 }
 
 .question-button {
@@ -360,11 +423,15 @@ html {
 /* Input container */
 .input-container {
 	padding: 1rem 0;
-	border-top: 1px solid var(--border-light);
 	position: sticky;
 	bottom: 0;
 	background: inherit;
 	z-index: 5;
+	transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+	transform: translateZ(0);
+	backface-visibility: hidden;
+	perspective: 1000px;
+	will-change: transform, width;
 }
 
 .input-form {
@@ -466,18 +533,26 @@ html {
 
 /* Add sidebar styles */
 .main-content {
+	padding-top: 60px;
 	display: flex;
 	flex: 1;
 	overflow: hidden;
+	position: relative;
+	min-height: calc(100vh - 60px); /* Adjust to account for header */
 }
 
 .sidebar {
+	position: fixed;
+	top: 0;
+	left: 0;
+	height: 100%;
 	width: 250px;
 	background: var(--message-bg-light); /* Bot message background color */
 	border-right: 1px solid var(--border-light);
-	transition: all 0.3s ease;
-	position: relative;
-	overflow: hidden; /* Change from overflow: auto to hidden */
+	transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+	will-change: transform;
+	padding-top: 60px; /* Height of header */
+	z-index: 15;  /* Make sure it's lower than header */
 }
 
 .sidebar .suggested-questions {
@@ -487,37 +562,68 @@ html {
 }
 
 .sidebar.closed {
-	width: 0;
+	transform: translateX(-100%);
 }
 
 .sidebar.closed .suggested-questions {
 	opacity: 0;
 }
 
-/* Update the toggle button transition */
+/* Update the toggle button style */
 .sidebar-toggle {
-	position: fixed; /* Change from absolute to fixed */
-	left: 0; /* Change from right: -30px to left: 0 */
-	top: 50%; /* Change from 10px to 50% */
-	transform: translateY(-50%); /* Add this to center vertically */
-	width: 30px;
-	height: 60px; /* Make button taller */
-	border: none;
-	background: var(--primary-color);
-	color: white;
-	cursor: pointer;
-	z-index: 100;
-	border-radius: 0 4px 4px 0; /* Round only right corners */
-	transition: left 0.3s ease, background-color 0.2s ease; /* Add transition */
+  position: static;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--border-light);
+  background: var(--button-light);
+  color: var(--text-light);
+  cursor: pointer;
+  z-index: 25;
+  border-radius: 6px;
+  margin-left: -0.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: none;
+  transition: all 0.2s ease;
+  margin-right: 0.7rem;
 }
 
-.sidebar.open + .chat-container .sidebar-toggle {
-	left: 250px; /* Move button when sidebar is open */
-}
-
-/* Add hover effect */
+/* Base hover state */
 .sidebar-toggle:hover {
-	background: var(--primary-hover);
+  background-color: var(--border-light);
+}
+
+/* When sidebar is open */
+.header.sidebar-open .sidebar-toggle {
+  background-color: var(--background-light);
+}
+
+.header.sidebar-open .sidebar-toggle:hover {
+  background-color: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
+/* Dark mode adjustments */
+.dark-mode .sidebar-toggle {
+  background-color: var(--button-dark);
+  color: var(--text-dark);
+  border-color: var(--border-dark);
+}
+
+.dark-mode .sidebar-toggle:hover {
+  background-color: var(--message-bg-dark); /* Lighter hover color */
+}
+
+.dark-mode .header.sidebar-open .sidebar-toggle {
+  background-color: var(--background-dark);
+}
+
+.dark-mode .header.sidebar-open .sidebar-toggle:hover {
+  background-color: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
 }
 
 /* Dark mode adjustments */
@@ -528,11 +634,28 @@ html {
 
 .dark-mode .question-button {
 	background-color: var(--background-dark);
-	color: var(--text-dark);
+	color: var (--text-dark);
 	border-color: var(--border-dark);
 }
 
 .dark-mode .question-button:hover {
 	background-color: var(--primary-color);
 	border-color: var(--primary-color);
+}
+
+.dark-mode .header {
+	background-color: var(--background-dark);
+}
+
+/* Add styles for the suggestions label */
+.suggestions-label {
+  color: var(--text-secondary-light);
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-bottom: 1rem;
+  padding-left: 0.5rem;
+}
+
+.dark-mode .suggestions-label {
+  color: var(--text-secondary-dark);
 }

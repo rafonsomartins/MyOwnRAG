@@ -259,14 +259,19 @@ const renderMessageText = (text) => {
 
 return (
 	<div className={`app-container ${darkMode ? 'dark-mode' : 'light-mode'}`}>
-	<header className="header">
+	<header className={`header ${sidebarOpen ? 'sidebar-open' : ''}`}>
+		<div className="header-title-bg"></div>
+		<div className="header-content">
 		<div className="header-left">
-		<h1>Rui's Assistant</h1>
+			<button onClick={() => setSidebarOpen(!sidebarOpen)} className="sidebar-toggle">
+				{sidebarOpen ? '←' : '→'}
+			</button>
+			<h1>Rui's Assistant</h1>
 		</div>
 		<div className="header-right">
-		<button onClick={toggleDarkMode} className="icon-button theme-toggle" aria-label="Toggle dark mode">
+			<button onClick={toggleDarkMode} className="icon-button theme-toggle" aria-label="Toggle dark mode">
 			{darkMode ? (
-			<svg viewBox="0 0 24 24" width="20" height="20">
+				<svg viewBox="0 0 24 24" width="20" height="20">
 				<circle cx="12" cy="12" r="5" />
 				<path d="M12 1v2" />
 				<path d="M12 21v2" />
@@ -276,20 +281,22 @@ return (
 				<path d="M21 12h2" />
 				<path d="M4.22 19.78l1.42-1.42" />
 				<path d="M18.36 5.64l1.42-1.42" />
-			</svg>
+				</svg>
 			) : (
-			<svg viewBox="0 0 24 24" width="20" height="20">
+				<svg viewBox="0 0 24 24" width="20" height="20">
 				<path d="M21 12.79A9 9 0 1 1 11.21 3 A7 7 0 0 0 21 12.79z" />
-			</svg>
+				</svg>
 			)}
-		</button>
-		<button onClick={clearChat} className="clear-button">New Chat</button>
+			</button>
+			<button onClick={clearChat} className="clear-button">New Chat</button>
+		</div>
 		</div>
 	</header>
 
 	<div className="main-content">
 		<div className={`sidebar ${sidebarOpen ? 'open' : 'closed'}`}>
 		<div className="suggested-questions">
+			<div className="suggestions-label">Suggested questions</div>
 			<button 
 			onClick={() => {
 				setInput("Tell me about Rui's professional experience");
@@ -321,9 +328,6 @@ return (
 		</div>
 		
 		<div className="chat-container">
-		<button onClick={() => setSidebarOpen(!sidebarOpen)} className="sidebar-toggle">
-			{sidebarOpen ? '←' : '→'}
-		</button>
 		<div className="messages">
 			{messages.length === 0 && (
 			<div className="welcome-section">
