@@ -1,4 +1,3 @@
-// App.js - Modern ChatBot UI
 import React, { useState, useEffect, useRef } from 'react';
 import './App.css';
 
@@ -8,6 +7,8 @@ const [input, setInput] = useState('');
 const [loading, setLoading] = useState(false);
 const [sessionId, setSessionId] = useState(null);
 const messagesEndRef = useRef(null);
+const [darkMode, setDarkMode] = useState(false);
+const textareaRef = useRef(null);
 
 useEffect(() => {
 	// Scroll to bottom whenever messages change
@@ -20,17 +21,60 @@ useEffect(() => {
 	if (savedSessionId) {
 	setSessionId(savedSessionId);
 	}
+	
+	// Check system color scheme preference
+	const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+	setDarkMode(prefersDark);
+	
+	// Add listener for changes in color scheme preference
+	const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+	const handleChange = (e) => setDarkMode(e.matches);
+	mediaQuery.addEventListener('change', handleChange);
+	
+	return () => mediaQuery.removeEventListener('change', handleChange);
 }, []);
+
+// Add this useEffect to adjust scroll sensitivity
+useEffect(() => {
+	const messagesContainer = document.querySelector('.messages');
+	
+	const handleWheel = (e) => {
+	// Reduce scroll speed by dividing delta
+	if (messagesContainer) {
+		messagesContainer.scrollTop += e.deltaY / 2;
+		e.preventDefault();
+	}
+	};
+	
+	messagesContainer?.addEventListener('wheel', handleWheel, { passive: false });
+	
+	return () => {
+	messagesContainer?.removeEventListener('wheel', handleWheel);
+	};
+}, []);
+
+// Auto-resize textarea initially
+useEffect(() => {
+	if (textareaRef.current) {
+	textareaRef.current.style.height = 'auto';
+	textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 150)}px`;
+	}
+}, [input]);
 
 const handleSubmit = async (e) => {
 	e.preventDefault();
 	if (input.trim() === '') return;
 
 	// Add user message to chat
-	const userMessage = { text: input, isUser: true };
+	const userMessage = { text: input, isUser: true, timestamp: new Date() };
 	setMessages(prev => [...prev, userMessage]);
 	setLoading(true);
 	setInput('');
+
+	// Reset textarea height
+	if (textareaRef.current) {
+	textareaRef.current.style.height = 'auto';
+	}
 
 	try {
 	const response = await fetch('http://localhost:8000/query', {
@@ -40,7 +84,7 @@ const handleSubmit = async (e) => {
 		},
 		body: JSON.stringify({
 		session_id: sessionId,
-		query: input.trim()
+		query: userMessage.text.trim()
 		}),
 	});
 
@@ -53,12 +97,17 @@ const handleSubmit = async (e) => {
 	}
 
 	// Add bot response to chat
-	setMessages(prev => [...prev, { text: data.response, isUser: false }]);
+	setMessages(prev => [...prev, { 
+		text: data.response, 
+		isUser: false, 
+		timestamp: new Date() 
+	}]);
 	} catch (error) {
 	console.error('Error fetching response:', error);
 	setMessages(prev => [...prev, { 
-		text: "Sorry, a technical error occurred. Please try again later.\n\nFeel free to visit my https://linkedin.com/in/rui-afonso-martins or https://github.com/rafonsomartins for more information.", 
-		isUser: false 
+		text: "Sorry, a technical error occurred. Please try again later.", 
+		isUser: false,
+		timestamp: new Date()
 	}]);
 	} finally {
 	setLoading(false);
@@ -71,9 +120,13 @@ const clearChat = () => {
 	localStorage.removeItem('chatSessionId');
 };
 
-// Function to render message text with custom link handling
+const toggleDarkMode = () => {
+	setDarkMode(prev => !prev);
+};
+
+// Function to render message text with updated link handling
 const renderMessageText = (text) => {
-	// Regular expressions for LinkedIn and GitHub URLs - Fixed to properly match https:// prefix
+	// Regular expressions for LinkedIn and GitHub URLs
 	const linkedInRegex = /(https?:\/\/(?:www\.)?linkedin\.com\/in\/[^\s]+)/g;
 	const githubRegex = /(https?:\/\/(?:www\.)?github\.com\/[^\s]+)/g;
 	const otherUrlRegex = /(https?:\/\/(?!(?:www\.)?linkedin\.com|(?:www\.)?github\.com)[^\s]+)/g;
@@ -106,7 +159,7 @@ const renderMessageText = (text) => {
 	const parts = processedLine.split(/(\|LinkedIn_URL:[^|]+\||\|Github_URL:[^|]+\||\|URL:[^|]+\|)/);
 
 	return (
-		<p key={lineIndex}>
+		<p key={lineIndex} className="message-line">
 		{parts.map((part, partIndex) => {
 			// Check for LinkedIn URL
 			if (part.startsWith('|LinkedIn_URL:')) {
@@ -120,6 +173,11 @@ const renderMessageText = (text) => {
 				className="message-link"
 				>
 				LinkedIn
+				<svg className="link-icon" viewBox="0 0 24 24" width="16" height="16">
+					<path d="M15 3h6v6" />
+					<path d="M10 14L21 3" />
+					<path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" />
+				</svg>
 				</a>
 			);
 			} 
@@ -135,6 +193,11 @@ const renderMessageText = (text) => {
 				className="message-link"
 				>
 				GitHub
+				<svg className="link-icon" viewBox="0 0 24 24" width="16" height="16">
+					<path d="M15 3h6v6" />
+					<path d="M10 14L21 3" />
+					<path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" />
+				</svg>
 				</a>
 			);
 			} 
@@ -149,7 +212,12 @@ const renderMessageText = (text) => {
 				rel="noopener noreferrer"
 				className="message-link"
 				>
-				{url}
+				{url.length > 30 ? url.substring(0, 30) + '...' : url}
+				<svg className="link-icon" viewBox="0 0 24 24" width="16" height="16">
+					<path d="M15 3h6v6" />
+					<path d="M10 14L21 3" />
+					<path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" />
+				</svg>
 				</a>
 			);
 			}
@@ -162,70 +230,120 @@ const renderMessageText = (text) => {
 	});
 };
 
-// Group messages by sender
-const groupedMessages = [];
-let currentGroup = null;
-
-messages.forEach((message) => {
-	if (!currentGroup || currentGroup.isUser !== message.isUser) {
-	currentGroup = {
-		isUser: message.isUser,
-		messages: [message]
-	};
-	groupedMessages.push(currentGroup);
-	} else {
-	currentGroup.messages.push(message);
-	}
-});
+// Format timestamp
+const formatTime = (date) => {
+	return new Intl.DateTimeFormat('en-US', {
+	hour: 'numeric',
+	minute: 'numeric',
+	hour12: true
+	}).format(date);
+};
 
 return (
-	<div className="app-container">
+	<div className={`app-container ${darkMode ? 'dark-mode' : 'light-mode'}`}>
 	<header className="header">
+		<div className="header-left">
 		<h1>Rui's Assistant</h1>
-		<button onClick={clearChat} className="clear-button">Clear Chat</button>
+		</div>
+		<div className="header-right">
+		<button onClick={toggleDarkMode} className="icon-button theme-toggle" aria-label="Toggle dark mode">
+			{darkMode ? (
+			<svg viewBox="0 0 24 24" width="20" height="20">
+				<circle cx="12" cy="12" r="5" />
+				<path d="M12 1v2" />
+				<path d="M12 21v2" />
+				<path d="M4.22 4.22l1.42 1.42" />
+				<path d="M18.36 18.36l1.42 1.42" />
+				<path d="M1 12h2" />
+				<path d="M21 12h2" />
+				<path d="M4.22 19.78l1.42-1.42" />
+				<path d="M18.36 5.64l1.42-1.42" />
+			</svg>
+			) : (
+			<svg viewBox="0 0 24 24" width="20" height="20">
+				<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+			</svg>
+			)}
+		</button>
+		<button onClick={clearChat} className="clear-button">New Chat</button>
+		</div>
 	</header>
 
 	<div className="chat-container">
 		<div className="messages">
-		{groupedMessages.length === 0 && (
-			<div className="welcome-message">
-			<h2>Welcome to Rui's Assistant</h2>
-			<p>Ask me anything about Rui's background, skills, or experience!</p>
+		{messages.length === 0 && (
+			<div className="welcome-section">
+			<div className="welcome-content">
+				<h2>Welcome to Rui's Assistant</h2>
+				<p>I can help you learn about Rui's skills, experience, and background. What would you like to know?</p>
+				
+				<div className="suggested-questions">
+				<button 
+					onClick={() => {
+					setInput("Tell me about Rui's professional experience");
+					setTimeout(() => handleSubmit({ preventDefault: () => {} }), 100);
+					}}
+					className="question-button"
+				>
+					Professional experience
+				</button>
+				<button 
+					onClick={() => {
+					setInput("What are Rui's technical skills?");
+					setTimeout(() => handleSubmit({ preventDefault: () => {} }), 100);
+					}}
+					className="question-button"
+				>
+					Technical skills
+				</button>
+				<button 
+					onClick={() => {
+					setInput("Where can I find Rui's portfolio?");
+					setTimeout(() => handleSubmit({ preventDefault: () => {} }), 100);
+					}}
+					className="question-button"
+				>
+					Portfolio
+				</button>
+				</div>
+			</div>
 			</div>
 		)}
 		
-		{groupedMessages.map((group, groupIndex) => (
+		{messages.map((message, messageIndex) => (
 			<div 
-			key={groupIndex} 
-			className={`message-group ${group.isUser ? 'user-group' : 'bot-group'}`}
+			key={messageIndex} 
+			className={`message ${message.isUser ? 'user-message' : 'assistant-message'}`}
 			>
-			{group.messages.map((message, messageIndex) => (
-				<div 
-				key={messageIndex} 
-				className={`message ${message.isUser ? 'user-message' : 'bot-message'}`}
-				>
-				{messageIndex === 0 && (
-					<div className="message-avatar">
-					{message.isUser ? 'U' : 'R'}
-					</div>
-				)}
+			<div className="message-wrapper">
 				<div className="message-content">
+				<div className="message-header">
+					<span className="message-author">{message.isUser ? 'You' : 'Rui\'s Assistant'}</span>
+					{message.timestamp && (
+					<span className="message-time">{formatTime(message.timestamp)}</span>
+					)}
+				</div>
+				<div className="message-body">
 					{renderMessageText(message.text)}
 				</div>
 				</div>
-			))}
+			</div>
 			</div>
 		))}
 		
 		{loading && (
-			<div className="message-group bot-group">
-			<div className="message bot-message">
-				<div className="message-avatar">R</div>
+			<div className="message assistant-message">
+			<div className="message-wrapper">
 				<div className="message-content">
-				<div className="typing-indicator">
+				<div className="message-header">
+					<span className="message-author">Rui's Assistant</span>
+				</div>
+				<div className="message-body">
+					<div className="typing-indicator">
 					<span></span>
 					<span></span>
 					<span></span>
+					</div>
 				</div>
 				</div>
 			</div>
@@ -237,17 +355,36 @@ return (
 
 		<div className="input-container">
 		<form onSubmit={handleSubmit} className="input-form">
-			<input
-			type="text"
+			<textarea
+			ref={textareaRef}
 			value={input}
-			onChange={(e) => setInput(e.target.value)}
+			onChange={(e) => {
+				setInput(e.target.value);
+				// Auto-resize
+				e.target.style.height = 'auto';
+				e.target.style.height = `${Math.min(e.target.scrollHeight, 150)}px`;
+			}}
+			onKeyDown={(e) => {
+				// Allow Shift+Enter for newlines, but submit on Enter without shift
+				if (e.key === 'Enter' && !e.shiftKey) {
+				e.preventDefault();
+				handleSubmit(e);
+				}
+			}}
 			placeholder="Ask about Rui..."
 			disabled={loading}
+			className="message-input"
+			rows="1"
 			/>
-			<button type="submit" disabled={loading || input.trim() === ''}>
-			<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-				<path d="M22 2L11 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-				<path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+			<button 
+			type="submit" 
+			disabled={loading || input.trim() === ''}
+			className="send-button"
+			aria-label="Send message"
+			>
+			<svg viewBox="0 0 24 24" width="20" height="20">
+				<path d="M5 12h14" />
+				<path d="M12 5l7 7-7 7" />
 			</svg>
 			</button>
 		</form>
@@ -255,7 +392,7 @@ return (
 	</div>
 	
 	<footer className="footer">
-		<p>Powered by Gemini API • Developed by Rui Afonso Martins</p>
+		<p>© {new Date().getFullYear()} Rui Afonso Martins</p>
 	</footer>
 	</div>
 );
