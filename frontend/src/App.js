@@ -5,64 +5,45 @@ function App() {
 const [messages, setMessages] = useState([]);
 const [input, setInput] = useState('');
 const [loading, setLoading] = useState(false);
-const [sessionId, setSessionId] = useState(null);
 const messagesEndRef = useRef(null);
 const [darkMode, setDarkMode] = useState(false);
 const textareaRef = useRef(null);
 const [sidebarOpen, setSidebarOpen] = useState(true);
 
 useEffect(() => {
-	const savedSessionId = localStorage.getItem('chatSessionId');
-	const savedDarkMode = localStorage.getItem('darkMode');
+	// Load saved messages from localStorage
+	const savedMessages = localStorage.getItem('chatMessages');
 	const savedSidebarState = localStorage.getItem('sidebarOpen');
 	
-	if (savedSessionId) {
-	setSessionId(savedSessionId);
+	if (savedMessages) {
+	try {
+		setMessages(JSON.parse(savedMessages));
+	} catch (e) {
+		console.error('Error parsing saved messages:', e);
 	}
-	
-	if (savedDarkMode !== null) {
-	setDarkMode(JSON.parse(savedDarkMode));
-	} else {
-	const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-	setDarkMode(prefersDark);
 	}
 	
 	if (savedSidebarState !== null) {
 	setSidebarOpen(JSON.parse(savedSidebarState));
 	}
-	
-	window.addEventListener('beforeunload', cleanupSession);
-	return () => window.removeEventListener('beforeunload', cleanupSession);
 }, []);
 
+// Save messages to localStorage whenever they change
 useEffect(() => {
-	localStorage.setItem('darkMode', JSON.stringify(darkMode));
-}, [darkMode]);
+	localStorage.setItem('chatMessages', JSON.stringify(messages));
+}, [messages]);
 
+// Save sidebar state
 useEffect(() => {
 	localStorage.setItem('sidebarOpen', JSON.stringify(sidebarOpen));
 }, [sidebarOpen]);
 
+// Scroll to bottom on new messages
 useEffect(() => {
 	messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
 }, [messages]);
 
-useEffect(() => {
-	const savedSessionId = localStorage.getItem('chatSessionId');
-	if (savedSessionId) {
-	setSessionId(savedSessionId);
-	}
-	
-	const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-	setDarkMode(prefersDark);
-	
-	const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-	const handleChange = (e) => setDarkMode(e.matches);
-	mediaQuery.addEventListener('change', handleChange);
-	
-	return () => mediaQuery.removeEventListener('change', handleChange);
-}, []);
-
+// Adjust textarea height based on content
 useEffect(() => {
 	if (textareaRef.current) {
 	textareaRef.current.style.height = 'auto';
@@ -70,12 +51,33 @@ useEffect(() => {
 	}
 }, [input]);
 
+useEffect(() => {
+  const savedDarkMode = localStorage.getItem('darkMode');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+  
+  const handleSystemThemeChange = (e) => {
+    if (localStorage.getItem('darkMode') === null) {
+      setDarkMode(e.matches);
+    }
+  };
+
+  if (savedDarkMode !== null) {
+    setDarkMode(JSON.parse(savedDarkMode));
+  } else {
+    setDarkMode(prefersDark.matches);
+  }
+
+  prefersDark.addEventListener('change', handleSystemThemeChange);
+  return () => prefersDark.removeEventListener('change', handleSystemThemeChange);
+}, []);
+
 const handleSubmit = async (e) => {
 	e.preventDefault();
 	if (input.trim() === '') return;
 
-	const userMessage = { text: input, isUser: true, timestamp: new Date() };
-	setMessages(prev => [...prev, userMessage]);
+	const userMessage = { text: input, isUser: true, timestamp: new Date().toISOString() };
+	const updatedMessages = [...messages, userMessage];
+	setMessages(updatedMessages);
 	setLoading(true);
 	setInput('');
 
@@ -84,39 +86,40 @@ const handleSubmit = async (e) => {
 	}
 
 	setTimeout(() => {
-		textareaRef.current?.focus();
+	textareaRef.current?.focus();
 	}, 0);
 
 	try {
+	// Prepare the conversation history for the backend
+	const conversationHistory = updatedMessages.map(msg => ({
+		role: msg.isUser ? 'user' : 'assistant',
+		content: msg.text
+	}));
+
 	const response = await fetch('http://localhost:8000/query', {
 		method: 'POST',
 		headers: {
 		'Content-Type': 'application/json',
 		},
 		body: JSON.stringify({
-		session_id: sessionId,
+		history: conversationHistory,
 		query: userMessage.text.trim()
 		}),
 	});
 
 	const data = await response.json();
-	
-	if (!sessionId && data.session_id) {
-		setSessionId(data.session_id);
-		localStorage.setItem('chatSessionId', data.session_id);
-	}
 
 	setMessages(prev => [...prev, { 
 		text: data.response, 
 		isUser: false, 
-		timestamp: new Date() 
+		timestamp: new Date().toISOString() 
 	}]);
 	} catch (error) {
 	console.error('Error fetching response:', error);
 	setMessages(prev => [...prev, { 
 		text: "Sorry, a technical error occurred. Please try again later.", 
 		isUser: false,
-		timestamp: new Date()
+		timestamp: new Date().toISOString()
 	}]);
 	} finally {
 	setLoading(false);
@@ -126,31 +129,15 @@ const handleSubmit = async (e) => {
 	}
 };
 
-const cleanupSession = async () => {
-	if (sessionId) {
-	try {
-		await fetch('http://localhost:8000/cleanup-session', {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json',
-		},
-		body: JSON.stringify({ session_id: sessionId }),
-		});
-	} catch (error) {
-		console.error('Error cleaning up session:', error);
-	}
-	}
-};
-
-const clearChat = async () => {
-	await cleanupSession();
+const clearChat = () => {
 	setMessages([]);
-	setSessionId(null);
-	localStorage.removeItem('chatSessionId');
+	localStorage.removeItem('chatMessages');
 };
 
 const toggleDarkMode = () => {
-	setDarkMode(prev => !prev);
+  const newDarkMode = !darkMode;
+  setDarkMode(newDarkMode);
+  localStorage.setItem('darkMode', JSON.stringify(newDarkMode));
 };
 
 const renderMessageText = (text) => {
@@ -240,13 +227,13 @@ return (
 		<div className="header-content">
 		<div className="header-left">
 			<button onClick={() => setSidebarOpen(!sidebarOpen)} className="sidebar-toggle">
-				<svg viewBox="0 0 24 24" width="20" height="20">
-					{sidebarOpen ? (
-						<path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-					) : (
-						<path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-					)}
-				</svg>
+			<svg viewBox="0 0 24 24" width="20" height="20">
+				{sidebarOpen ? (
+				<path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+				) : (
+				<path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+				)}
+			</svg>
 			</button>
 			<h1>Rui's Assistant</h1>
 		</div>
@@ -320,8 +307,8 @@ return (
 				<div className="suggested-questions">
 					<button 
 					onClick={() => {
-					setInput("Tell me about Rui's professional experience");
-					setTimeout(() => handleSubmit({ preventDefault: () => {} }), 100);
+						setInput("Tell me about Rui's professional experience");
+						setTimeout(() => handleSubmit({ preventDefault: () => {} }), 100);
 					}}
 					className="question-button"
 					>
@@ -329,8 +316,8 @@ return (
 					</button>
 					<button 
 					onClick={() => {
-					setInput("What are Rui's technical skills?");
-					setTimeout(() => handleSubmit({ preventDefault: () => {} }), 100);
+						setInput("What are Rui's technical skills?");
+						setTimeout(() => handleSubmit({ preventDefault: () => {} }), 100);
 					}}
 					className="question-button"
 					>
@@ -338,8 +325,8 @@ return (
 					</button>
 					<button 
 					onClick={() => {
-					setInput("Where can I find Rui's portfolio?");
-					setTimeout(() => handleSubmit({ preventDefault: () => {} }), 100);
+						setInput("Where can I find Rui's portfolio?");
+						setTimeout(() => handleSubmit({ preventDefault: () => {} }), 100);
 					}}
 					className="question-button"
 					>
