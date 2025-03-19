@@ -18,7 +18,6 @@
 	--button-dark: #2c2c2e;
 }
 
-/* Base styles */
 * {
 	margin: 0;
 	padding: 0;
@@ -43,13 +42,12 @@ html {
 	flex-direction: column;
 	height: 100vh;
 	width: 100vw;
-	overflow: hidden; /* Change from auto to hidden */
+	overflow: hidden;
 	background-color: var(--background-light);
 	color: var(--text-light);
 	transition: all 0.3s ease;
 }
 
-/* Dark mode */
 .dark-mode {
 	background-color: var(--background-dark);
 	color: var(--text-dark);
@@ -83,11 +81,10 @@ html {
 	color: var (--text-secondary-dark);
 }
 
-/* Header styles */
 .header {
 	position: fixed;
 	width: 100%;
-	z-index: 20;  /* Increased z-index */
+	z-index: 20;
 	background-color: var(--background-light);
 }
 
@@ -102,7 +99,7 @@ html {
 	transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 	transform: translateX(-100%);
 	will-change: transform;
-	z-index: 1;  /* Add z-index */
+	z-index: 1;
 }
 
 .header.sidebar-open .header-title-bg {
@@ -115,7 +112,7 @@ html {
 	align-items: center;
 	padding: 1rem 1.5rem;
 	position: relative;
-	z-index: 25;  /* Higher z-index than header and sidebar */
+	z-index: 25;
 }
 
 .dark-mode .header-title-bg {
@@ -180,15 +177,14 @@ html {
 	stroke-linejoin: round;
 }
 
-/* Chat container */
 .chat-container {
 	flex: 1;
 	display: flex;
 	flex-direction: column;
 	width: 100%;
-	max-width: 1000px;  /* Add max-width */
-	margin: 0 auto;     /* Center the container */
-	padding: 1rem 2rem; /* Increase horizontal padding */
+	max-width: 1100px;
+	margin: 0 auto;
+	padding: 1rem 2rem;
 	transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 	transform: translateZ(0);
 	backface-visibility: hidden;
@@ -202,7 +198,7 @@ html {
 	margin-left: auto;
     margin-right: auto;
     padding-left: calc(250px + 2rem);
-    padding-right: 2rem;
+    padding-right: calc(1rem - 250px);
 }
 
 @media (max-width: 1200px) {
@@ -224,7 +220,7 @@ html {
 	padding: 1rem 0;
 	scroll-behavior: smooth;
 	scrollbar-gutter: stable;
-	min-height: 0; /* Important for flex child scrolling */
+	min-height: 0;
 	transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 	transform: translateZ(0);
 	backface-visibility: hidden;
@@ -234,7 +230,6 @@ html {
 	padding-bottom: -2000px;
 }
 
-/* Welcome section */
 .welcome-section {
 	display: flex;
 	flex-direction: column;
@@ -289,11 +284,10 @@ html {
 	border-color: var(--primary-color);
 }
 
-/* Message styles */
 .message {
 	display: flex;
 	flex-direction: column;
-	margin-bottom: 1rem;
+	margin-bottom: 2rem;
 	max-width: 100%;
 	animation: fadeIn 0.3s ease;
 }
@@ -311,11 +305,14 @@ html {
 .message-content {
 	border-radius: 12px;
 	overflow: hidden;
-	max-width: 85%;
 	padding: 0.75rem 1rem;
 	margin-bottom: 4px;
-	width: 100%;
+	width: auto;
+	min-width: 50%;
 	max-width: 80%;
+	height: auto;
+	word-wrap: break-word;
+    white-space: pre-wrap;
 }
 
 .assistant-message .message-content {
@@ -329,6 +326,9 @@ html {
 .user-message .message-content {
 	background-color: var(--user-message-bg-light);
 	margin-left: auto;
+	width: auto;
+	min-width: 50%;
+	max-width: 80%;
 }
 
 .message-header {
@@ -386,7 +386,6 @@ html {
 	display: none;
 }
 
-/* Typing indicator */
 .typing-indicator {
 	display: flex;
 	align-items: center;
@@ -420,7 +419,6 @@ html {
 	40% { transform: translateY(-0.5rem); }
 }
 
-/* Input container */
 .input-container {
 	padding: 1rem 0;
 	position: sticky;
@@ -498,7 +496,6 @@ html {
 	stroke-linejoin: round;
 }
 
-/* Footer */
 .footer {
 	padding: 0.5rem;
 	text-align: center;
@@ -507,7 +504,6 @@ html {
 	color: var(--text-secondary-light);
 }
 
-/* Responsive adjustments */
 @media (max-width: 768px) {
 	.header h1 {
 	font-size: 1.2rem;
@@ -531,14 +527,13 @@ html {
 	}
 }
 
-/* Add sidebar styles */
 .main-content {
 	padding-top: 60px;
 	display: flex;
 	flex: 1;
 	overflow: hidden;
 	position: relative;
-	min-height: calc(100vh - 60px); /* Adjust to account for header */
+	min-height: calc(100vh - 60px);
 }
 
 .sidebar {
@@ -547,12 +542,12 @@ html {
 	left: 0;
 	height: 100%;
 	width: 250px;
-	background: var(--message-bg-light); /* Bot message background color */
+	background: var(--message-bg-light);
 	border-right: 1px solid var(--border-light);
 	transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 	will-change: transform;
-	padding-top: 60px; /* Height of header */
-	z-index: 15;  /* Make sure it's lower than header */
+	padding-top: 60px;
+	z-index: 15;
 }
 
 .sidebar .suggested-questions {
@@ -569,66 +564,56 @@ html {
 	opacity: 0;
 }
 
-/* Update the toggle button style */
 .sidebar-toggle {
-  position: static;
-  width: 30px;
-  height: 30px;
-  border: 1px solid var(--border-light);
-  background: var(--button-light);
-  color: var(--text-light);
-  cursor: pointer;
-  z-index: 25;
-  border-radius: 6px;
-  margin-left: -0.4rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transform: none;
-  transition: all 0.2s ease;
-  margin-right: 0.7rem;
+	position: static;
+	background-color: var(--button-light);
+	border: 1px solid var(--border-light);
+	border-radius: 50%;
+	width: 36px;
+	height: 36px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	transition: all 0.3s ease;
+	margin-right: 0.5rem;
+	margin-left: -0.5rem;
+	color: var(--text-light);
+	z-index: 25;
 }
 
-/* Base hover state */
 .sidebar-toggle:hover {
-  background-color: var(--border-light);
+	background-color: var(--border-light);
 }
 
-/* When sidebar is open */
 .header.sidebar-open .sidebar-toggle {
-  background-color: var(--background-light);
+	background-color: var(--button-light);
 }
 
 .header.sidebar-open .sidebar-toggle:hover {
-  background-color: var(--primary-color);
-  color: white;
-  border-color: var(--primary-color);
+	background-color: var(--border-light);
 }
 
-/* Dark mode adjustments */
 .dark-mode .sidebar-toggle {
-  background-color: var(--button-dark);
-  color: var(--text-dark);
-  border-color: var(--border-dark);
+	background-color: var(--button-dark);
+	color: var(--text-dark);
+	border-color: var(--border-dark);
 }
 
 .dark-mode .sidebar-toggle:hover {
-  background-color: var(--message-bg-dark); /* Lighter hover color */
+	background-color: var(--border-light);
 }
 
 .dark-mode .header.sidebar-open .sidebar-toggle {
-  background-color: var(--background-dark);
+	background-color: var(--button-dark);
 }
 
 .dark-mode .header.sidebar-open .sidebar-toggle:hover {
-  background-color: var(--primary-color);
-  color: white;
-  border-color: var(--primary-color);
+	background-color: var(--border-light);
 }
 
-/* Dark mode adjustments */
 .dark-mode .sidebar {
-	background: var(--message-bg-dark); /* Bot message background color in dark mode */
+	background: var(--message-bg-dark);
 	border-color: var(--border-dark);
 }
 
@@ -647,7 +632,6 @@ html {
 	background-color: var(--background-dark);
 }
 
-/* Add styles for the suggestions label */
 .suggestions-label {
   color: var(--text-secondary-light);
   font-size: 0.9rem;

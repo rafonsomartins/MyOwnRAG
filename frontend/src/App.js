@@ -36,20 +36,6 @@ useEffect(() => {
 }, []);
 
 useEffect(() => {
-	const messagesContainer = document.querySelector('.messages');
-	
-	const handleWheel = (e) => {
-	if (messagesContainer) {
-		messagesContainer.scrollTop += e.deltaY;
-		e.preventDefault();
-	}
-	};
-	
-	messagesContainer?.addEventListener('wheel', handleWheel, { passive: false });
-	return () => messagesContainer?.removeEventListener('wheel', handleWheel);
-}, []);
-
-useEffect(() => {
 	localStorage.setItem('darkMode', JSON.stringify(darkMode));
 }, [darkMode]);
 
@@ -78,23 +64,6 @@ useEffect(() => {
 }, []);
 
 useEffect(() => {
-	const messagesContainer = document.querySelector('.messages');
-	
-	const handleWheel = (e) => {
-	if (messagesContainer) {
-		messagesContainer.scrollTop += e.deltaY / 2;
-		e.preventDefault();
-	}
-	};
-	
-	messagesContainer?.addEventListener('wheel', handleWheel, { passive: false });
-	
-	return () => {
-	messagesContainer?.removeEventListener('wheel', handleWheel);
-	};
-}, []);
-
-useEffect(() => {
 	if (textareaRef.current) {
 	textareaRef.current.style.height = 'auto';
 	textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 150)}px`;
@@ -113,6 +82,10 @@ const handleSubmit = async (e) => {
 	if (textareaRef.current) {
 	textareaRef.current.style.height = 'auto';
 	}
+
+	setTimeout(() => {
+		textareaRef.current?.focus();
+	}, 0);
 
 	try {
 	const response = await fetch('http://localhost:8000/query', {
@@ -147,6 +120,9 @@ const handleSubmit = async (e) => {
 	}]);
 	} finally {
 	setLoading(false);
+	setTimeout(() => {
+		textareaRef.current?.focus();
+	}, 0);
 	}
 };
 
@@ -264,7 +240,13 @@ return (
 		<div className="header-content">
 		<div className="header-left">
 			<button onClick={() => setSidebarOpen(!sidebarOpen)} className="sidebar-toggle">
-				{sidebarOpen ? '←' : '→'}
+				<svg viewBox="0 0 24 24" width="20" height="20">
+					{sidebarOpen ? (
+						<path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+					) : (
+						<path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+					)}
+				</svg>
 			</button>
 			<h1>Rui's Assistant</h1>
 		</div>

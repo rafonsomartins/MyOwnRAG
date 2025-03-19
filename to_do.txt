@@ -1,0 +1,15 @@
+Increase messages width (both sidebar open and closed) to a pleasent experience
+
+Populate the sidebar
+
+Solve the cleanupSession compiling error
+
+Actually store a session (and ask for cookies)
+
+Create a route in the api to delete the history
+
+Have the refresh or leave of the site send that request (not just the New chat button)
+
+Put the textstalking about the 'he' and not the 'me'
+
+Get the RAG itself better -> experiment with other models
