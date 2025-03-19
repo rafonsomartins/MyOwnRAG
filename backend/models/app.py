@@ -4,9 +4,8 @@ from pydantic import BaseModel
 import google.generativeai as genai
 from dotenv import load_dotenv
 import os
-import redis  # Regis added here
-from uuid import uuid4
-from typing import Optional
+import redis
+from typing import List
 from fastapi.middleware.cors import CORSMiddleware
 
 DOCS_FOLDER = "docs"
@@ -52,8 +51,12 @@ regis = redis.Redis(host="localhost", port=6379, decode_responses=True)
 genai.configure(api_key=API_KEY)
 model = SentenceTransformer("all-MiniLM-L6-v2")
 
+class MessageFormat(BaseModel):
+	role: str
+	content: str
+
 class QueryRequest(BaseModel):
-	session_id: Optional[str] = None
+	history: List[MessageFormat]
 	query: str
 
 # Load documents
@@ -98,26 +101,10 @@ def find_related_documents(query_embedding):
 
 	return []
 
-def get_session_history(session_id):
-	"""Retrieve session history from Regis (Redis)."""
-	history = regis.lrange(f"session:{session_id}", 0, -1)
-	return history if history else ["No history yet."]
-
-def save_session_history(session_id, conversation_history):
-	"""Save conversation history to Regis (Redis)."""
-	regis.delete(f"session:{session_id}")  # Clear previous history
-	regis.rpush(f"session:{session_id}", *conversation_history)  # Save new history
-
-def query_gemini(session_id, user_query, related_docs):
+def query_gemini(history, user_query, related_docs):
 	context_text = "\n".join(related_docs)
 
-	# Retrieve session history from Regis (Redis)
-	conversation_history = get_session_history(session_id)
-
-	prompt = f"This is some information about Rui: {aboutme}\nThis is a conversation between a recruiter and a Rui's assistent. If the Assistant doesn't know something, instead of making something up, they just reply exactly with: '{LLM_NOT_RELATED}'. The Recruiter doesn't share context directly. Context (Rui wrote this):\n{context_text}\n\n\nHistory:{conversation_history}\n\n\nRecruiter: {user_query}\n\nAssistant:"
-
-	# Append query to session history
-	conversation_history.append(f"Recruiter: {user_query}")
+	prompt = f"This is some information about Rui: {aboutme}\nThis is a conversation between a recruiter and a Rui's assistent. If the Assistant doesn't know something, instead of making something up, they just reply exactly with: '{LLM_NOT_RELATED}'. The Recruiter doesn't share context directly. Context (Rui wrote this):\n{context_text}\n\n\nHistory:{history}\n\n\nRecruiter: {user_query}\n\nAssistant:"
 
 	try:
 		model = genai.GenerativeModel("gemini-2.0-flash")
@@ -130,12 +117,6 @@ def query_gemini(session_id, user_query, related_docs):
 		final_response = model.generate_content(second_prompt)
 	except Exception:
 		return API_DOWN
-
-	# Store response in history
-	conversation_history.append(f"Assistant: {final_response.text}")
-
-	# Save updated session history in Regis (Redis)
-	save_session_history(session_id, conversation_history)
 
 	return final_response.text if final_response else NO_INFORMATION
 
@@ -154,21 +135,20 @@ def check_similarity_to_aboutme(query_embedding):
 # API Endpoints
 @app.post("/query")
 def query_rag(request: QueryRequest):
-	session_id = request.session_id or str(uuid4())  # Create a session if none provided
-	print("session:", session_id) # debug
+	history = request.history
 
 	query_embedding = model.encode(request.query, convert_to_tensor=True)
 	related_docs = find_related_documents(query_embedding)
 
 	if not related_docs:
 		if check_similarity_to_greetings(query_embedding) >= secondary_threshold:
-			return {"session_id": session_id, "response": "Hello! How can I assist you today?"}
+			return {"response": "Hello! How can I assist you today?"}
 		if check_similarity_to_aboutme(query_embedding) < third_threshold:
-			return {"session_id": session_id, "response": NO_INFORMATION}
+			return {"response": NO_INFORMATION}
 		related_docs = ["No more context yet."]
 
 	# print("context:\n\n", related_docs) # debug
 
-	gemini_response = query_gemini(session_id, request.query, related_docs)
+	gemini_response = query_gemini(history, request.query, related_docs)
 
-	return {"session_id": session_id, "response": gemini_response}
+	return {"response": gemini_response}
