@@ -1,9 +1,0 @@
-Hosting the data already embbeded in a DB.
-
-Create a separate microservice to vectorize and store the documents in the DB.
-
-Create a session logic.
-
-Pass the document id
-
-Create an initial hidden prompt with the aboutme.txt
