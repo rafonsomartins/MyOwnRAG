@@ -23,8 +23,6 @@ LLM_NOT_RELATED = "Not related.\n"
 load_dotenv()
 API_KEY = os.getenv("GEMINI_API_KEY")
 
-FRONTEND = os.getenv("FRONTEND_URL")
-
 # Define similarity thresholds
 threshold = 0.25
 secondary_threshold = 0.2
@@ -34,8 +32,8 @@ similarity_gap = 0.15  # Max allowed gap to keep weaker matches
 app = FastAPI()
 
 origins = [
-	# "http://localhost:3000",  # Allow frontend running on localhost:3000
-	FRONTEND,  # Allow production frontend
+	"http://localhost:3000",  # Allow frontend running on localhost:3000
+	"https://your-frontend.com",  # Allow production frontend
 ]
 
 # Add CORS middleware
@@ -110,9 +108,9 @@ def query_gemini(history, user_query, related_docs):
 
 	try:
 		model = genai.GenerativeModel("gemini-2.0-flash")
-		# print("first_prompt:\n\n", prompt) # debug
+		print("first_prompt:\n\n", prompt) # debug
 		response = model.generate_content(prompt)
-		# print("\n\nfirst response:\n\n", response.text) # debug
+		print("\n\nfirst response:\n\n", response.text) # debug
 		if response.text == LLM_NOT_RELATED:
 			return NO_INFORMATION
 		second_prompt = "Make this more formal and human-like. Rui is not applying to any jobs. Make sure to remove buzzwords\n\n" + response.text
@@ -149,12 +147,8 @@ def query_rag(request: QueryRequest):
 			return {"response": NO_INFORMATION}
 		related_docs = ["No more context yet."]
 
-	# print("context:\n\n", related_docs) # debug
+	print("context:\n\n", related_docs) # debug
 
 	gemini_response = query_gemini(history, request.query, related_docs)
 
 	return {"response": gemini_response}
-
-@app.get("/")
-def root():
-    return {"response": "Server is running"}

@@ -1,0 +1,7 @@
+fastapi
+sentence_transformers
+pydantic
+google-generativeai
+uvicorn
+python-dotenv
+redis

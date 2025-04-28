@@ -1,0 +1,3 @@
+runtime: docker
+sdk: fastapi
+app_file: app.py
